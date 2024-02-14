@@ -1,66 +1,83 @@
 const app = new Vue({
     el: '#app',
-    columns: [
-        {
-            title: 'First',
-            cards: []
+    data: {
+        columns: [
+            {
+                title: 'First',
+                cards: [],
+                maxCards: 3,
+                locked: false
+            },
+            {
+                title: 'Second',
+                cards: [],
+                maxCards: 5,
+                locked: false
+            },
+            {
+                title: 'Third',
+                cards: [],
+                maxCards: -1,
+                locked: true
+            }
+        ]
+    },
+    methods: {
+        addCard(columnIndex) {
+            if (this.columns[columnIndex].locked) {
+                return;
+            }
+
+            const card = {
+                title: 'New card',
+                items: [
+                    { text: 'Item 1', done: false },
+                    { text: 'Item 2', done: false },
+                    { text: 'Item 3', done: false }
+                ],
+                doneItems: 0,
+                completedAt: null
+            };
+
+            this.columns[columnIndex].cards.push(card);
+            this.saveData();
         },
-        {
-            title: 'Second',
-            cards: []
+        updateItem(card, itemIndex) {
+            card.items[itemIndex].done = !card.items[itemIndex].done;
+            card.doneItems = card.items.filter(item => item.done).length;
+
+            const firstColumn = this.columns[0];
+            const secondColumn = this.columns[1];
+
+            if (firstColumn.locked && card.doneItems >= card.items.length / 2) {
+                this.unlockFirstColumn();
+            }
+
+            if (firstColumn.cards.includes(card) && card.doneItems >= card.items.length / 2) {
+                this.moveCard(card, 1);
+            } else if (secondColumn.cards.includes(card) && card.doneItems === card.items.length) {
+                this.moveCard(card, 2);
+            }
         },
-        {
-            title: 'Third',
-            cards: []
-        }
-    ],
-methods: {
-    addCard(columnIndex) {
-        const card = {
-            title: 'New card',
-            items: [
-                { text: 'Item 1', done: false },
-                { text: 'Item 2', done: false },
-                { text: 'Item 3', done: false }
-            ],
-            doneItems: 0,
-            completedAt: null
-        };
-
-        this.columns[columnIndex].cards.push(card);
-        this.saveData();
-    },
-    updateItem(card, itemIndex) {
-        card.items[itemIndex].done = !card.items[itemIndex].done;
-        card.doneItems = card.items.filter(item => item.done).length;
-
-        this.checkCardPosition(card);
-    },
-    moveCard(card, targetColumnIndex) {
-        const sourceColumnIndex = this.columns.findIndex(column => column.cards.includes(card));
-        this.columns[sourceColumnIndex].cards.splice(this.columns[sourceColumnIndex].cards.indexOf(card), 1);
-        this.columns[targetColumnIndex].cards.push(card);
-        this.saveData();
-    },
-    checkCardPosition(card) {
-        const firstColumn = this.columns[0];
-        const secondColumn = this.columns[1];
-        const thirdColumn = this.columns[2];
-
-        if (card.doneItems >= card.items.length / 2 && firstColumn.cards.includes(card)) {
-            this.moveCard(card, 1);
-        } else if (card.doneItems === card.items.length && secondColumn.cards.includes(card)) {
-            this.moveCard(card, 2);
+        moveCard(card, targetColumnIndex) {
+            const sourceColumnIndex = this.columns.findIndex(column => column.cards.includes(card));
+            this.columns[sourceColumnIndex].cards.splice(this.columns[sourceColumnIndex].cards.indexOf(card), 1);
+            this.columns[targetColumnIndex].cards.push(card);
+            this.saveData();
+        },
+        unlockFirstColumn() {
+            const firstColumn = this.columns[0];
+            firstColumn.locked = false;
+            this.saveData();
+        },
+        saveData() {
+            localStorage.setItem('columns', JSON.stringify(this.columns));
         }
     },
-    saveData() {
-        localStorage.setItem('columns', JSON.stringify(this.columns));
+    created() {
+        const savedColumns = JSON.parse(localStorage.getItem('columns'));
+        if (savedColumns) {
+            this.columns = savedColumns;
+        }
     }
-},
-created() {
-    const savedColumns = JSON.parse(localStorage.getItem('columns'));
-    if (savedColumns) {
-        this.columns = savedColumns;
-    }
-}
 });
