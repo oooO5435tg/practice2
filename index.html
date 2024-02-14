@@ -14,22 +14,14 @@
             <h3>{{ card.title }}</h3>
             <ul>
                 <li v-for="(item, itemIndex) in card.items" :key="itemIndex">
-                    <input type="checkbox" :checked="item.done" @change="updateItem(card, itemIndex)">
+                    <input type="checkbox" v-model="item.done">
                     {{ item.text }}
                 </li>
             </ul>
-            <div v-if="card.doneItems >= card.items.length / 2 && column.title === 'First'">
-                <button @click="moveCard(card, 1)">Move to second column</button>
-            </div>
-            <div v-if="card.doneItems === card.items.length && column.title === 'Second'">
-                <button @click="moveCard(card, 2)">Move to third column</button>
-            </div>
-            <div v-if="card.doneItems === card.items.length">
-                <p>Completed: {{ card.completedAt }}</p>
-            </div>
         </div>
-        <button v-if="column.title === 'First' && column.cards.length < 3" @click="addCard(index)">Add card</button>
-        <button v-if="column.title === 'Second' && column.cards.length < 5" @click="addCard(index)">Add card</button>
+        <button @click="addCard(index)" :disabled="column.locked || column.cards.length >= column.maxCards">
+            Add Card
+        </button>
     </div>
 </div>
 <script src="js/vue.js"></script>

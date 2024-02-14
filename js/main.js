@@ -1,26 +1,28 @@
 const app = new Vue({
     el: '#app',
-    data: {
-        columns: [
-            {
-                title: 'First',
-                cards: [],
-                maxCards: 3,
-                locked: false
-            },
-            {
-                title: 'Second',
-                cards: [],
-                maxCards: 5,
-                locked: false
-            },
-            {
-                title: 'Third',
-                cards: [],
-                maxCards: -1,
-                locked: true
-            }
-        ]
+    data() {
+        return {
+            columns: [
+                {
+                    title: 'First',
+                    cards: [],
+                    maxCards: 3,
+                    locked: false
+                },
+                {
+                    title: 'Second',
+                    cards: [],
+                    maxCards: 5,
+                    locked: false
+                },
+                {
+                    title: 'Third',
+                    cards: [],
+                    maxCards: -1,
+                    locked: true
+                }
+            ]
+        };
     },
     methods: {
         addCard(columnIndex) {
@@ -70,6 +72,22 @@ const app = new Vue({
             firstColumn.locked = false;
             this.saveData();
         },
+        checkColumnStatus() {
+            const firstColumn = this.columns[0];
+            const secondColumn = this.columns[1];
+
+            if (secondColumn.cards.length === secondColumn.maxCards) {
+                firstColumn.locked = true;
+            }
+        },
+        checkCardCompletion() {
+            const firstColumn = this.columns[0];
+            const secondColumn = this.columns[1];
+
+            if (firstColumn.cards.some(card => card.doneItems === card.items.length)) {
+                firstColumn.locked = false;
+            }
+        },
         saveData() {
             localStorage.setItem('columns', JSON.stringify(this.columns));
         }
@@ -78,6 +96,8 @@ const app = new Vue({
         const savedColumns = JSON.parse(localStorage.getItem('columns'));
         if (savedColumns) {
             this.columns = savedColumns;
+            this.checkColumnStatus();
+            this.checkCardCompletion();
         }
     }
 });
