@@ -14,7 +14,7 @@
             <h3>{{ card.title }}</h3>
             <ul>
                 <li v-for="(item, itemIndex) in card.items" :key="itemIndex">
-                    <input type="checkbox" v-model="item.done">
+                    <input type="checkbox" v-model="item.done" @change="updateItem(card, itemIndex)">
                     {{ item.text }}
                 </li>
             </ul>
