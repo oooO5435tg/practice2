@@ -26,23 +26,41 @@ document.addEventListener('DOMContentLoaded', () => {
             };
         },
         methods: {
-            addCard(columnIndex) {
-                if (this.columns[columnIndex].locked || this.columns[columnIndex].cards.length >= this.columns[columnIndex].maxCards) {
+            clearAllCards() {
+                for (const column of this.columns) {
+                    column.cards = [];
+                }
+            },
+            addCard(column) {
+                if (column.locked || column.cards.length >= column.maxCards) {
                     return;
                 }
 
-                const card = {
+                // Reset locked state of first and second columns after all cards have been cleared
+                if (column.title === 'First' || column.title === 'Second') {
+                    for (const col of this.columns) {
+                        if (col.title === 'First' || col.title === 'Second') {
+                            col.locked = false;
+                        }
+                    }
+                }
+
+                // Add new card
+                const newCard = {
+                    id: Date.now(),
                     title: 'New card',
                     items: [
-                        { text: 'Item 1', done: false },
-                        { text: 'Item 2', done: false },
-                        { text: 'Item 3', done: false }
+                        { text: 'Item 1', completed: false },
+                        { text: 'Item 2', completed: false },
+                        { text: 'Item 3', completed: false }
                     ],
-                    doneItems: 0,
+                    completedItems: 0,
                     completedAt: null
                 };
 
-                this.columns[columnIndex].cards.push(card);
+                column.cards.push(newCard);
+
+                // Save data to local storage
                 this.saveData();
             },
             updateItem(card, itemIndex) {
@@ -112,6 +130,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 this.checkColumnStatus();
                 this.checkCardCompletion();
             }
+        },
+        updated() {
+            this.saveData();
         }
     });
-});
+
+    function task(title) {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                console.log(`Task "${title}" is completed.`);
+                resolve();
+            }, Math.random() * 1000);
+        });
+    }})

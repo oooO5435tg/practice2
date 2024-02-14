@@ -8,6 +8,7 @@
 </head>
 <body>
 <div id="app">
+    <button @click="clearAllCards">Clear All</button>
     <div class="column" v-for="(column, index) in columns" :key="index">
         <h2>{{ column.title }}</h2>
         <div class="card" v-for="(card, cardIndex) in column.cards" :key="cardIndex">
