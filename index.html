@@ -20,9 +20,7 @@
                 </li>
             </ul>
         </div>
-        <button @click="addCard(index)" :disabled="column.locked || column.cards.length >= column.maxCards">
-            Add Card
-        </button>
+        <button v-on:click="addCard(column)" :disabled="column.locked || column.cards.length >= column.maxCards">Add card</button>
     </div>
 </div>
 <script src="js/vue.js"></script>
