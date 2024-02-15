@@ -13,24 +13,34 @@
         <h2>{{ column.title }}</h2>
         <div class="card-container">
             <div class="card" v-for="(card, cardIndex) in column.cards" :key="cardIndex">
-                <h3 :contenteditable="card.editable">{{ card.title }}</h3>
-                <ul>
-                    <li v-for="(item, itemIndex) in card.items" :key="itemIndex">
-                        <input type="checkbox" :checked="item.done" @change="updateItem(card, itemIndex)">
-                        <span :class="{ completed: item.done }">{{ item.text }}</span>
-                    </li>
-                </ul>
+                <h3 :contenteditable="card.editable || isEditing" @blur="card.editable = false" v-if="card === editedCard">{{ editedCard.title }}</h3>
+                <h3 :contenteditable="card.editable || isEditing" @blur="updateCardTitle(card)" v-else>{{ card.title }}</h3>
+                <div v-for="(item, itemIndex) in card.items" :key="itemIndex" class="card-item">
+                    <input type="checkbox" :checked="item.completed" @change="updateItem(card, itemIndex)">
+                    <span :class="{ completed: item.completed }">{{ item.text }}</span>
+                    <button v-if="!item.editable" @click="editCardItem(card, itemIndex)">Edit</button>
+                    <input v-else type="text" v-model="card.items[itemIndex].text" @keyup.enter="updateItem(card, itemIndex)">
+                </div>
+
+                <button v-if="!isEditing" @click="addCardItem(card)">Add Item</button>
+                <button v-else @click="removeCardItem(card, card.items.length - 1)">Remove Last Item</button>
                 <div class="card-footer" v-if="column.title === 'First' && card.doneItems >= card.items.length / 2">
+                    <button @click="unlockFirstColumn(column)">Unlock</button>
                 </div>
                 <div class="card-footer" v-else-if="column.title === 'Second' && card.doneItems === card.items.length">
+                    <button @click="moveCard(card, 2)">Move to Third</button>
                 </div>
                 <div class="card-footer" v-else-if="column.title === 'Third' && card.completedAt">
                     <p>Completed: {{ card.completedAt }}</p>
+                </div>
+                <div class="card-footer" v-else>
+                    <button v-if="!card.editable && !isEditing" @click="editCard(card)">Edit</button>
                 </div>
             </div>
         </div>
         <button v-if="column.locked || column.cards.length >= column.maxCards" :disabled="column.locked || column.cards.length >= column.maxCards">Add Card</button>
         <button v-else @click="addCard(column)">Add Card</button>
+
     </div>
 </div>
 <script src="js/vue.js"></script>

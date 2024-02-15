@@ -21,7 +21,11 @@ const app = new Vue({
                     maxCards: 10000,
                     locked: true
                 }
-            ]
+            ],
+            minNumberOfItems: 3,
+            maxNumberOfItems: 5,
+            editedCard: null,
+            isEditing: false
         };
     },
     methods: {
@@ -49,6 +53,7 @@ const app = new Vue({
         },
         addCard(column) {
             if (column.locked || column.cards.length >= column.maxCards) {
+                console.log("Card creation prevented.");
                 return;
             }
 
@@ -59,7 +64,6 @@ const app = new Vue({
                     }
                 }
             }
-
 
             const newCard = {
                 id: Date.now(),
@@ -74,8 +78,15 @@ const app = new Vue({
             };
 
             column.cards.push(newCard);
-            this.checkColumnStatus();
-            this.checkCardCompletion(newCard);
+            this.editedCard = newCard;
+            this.isEditing = true;
+        },
+        updateCardTitle(card) {
+            if (card.title !== this.editedCard.title && this.editedCard) {
+                card.title = this.editedCard.title;
+                this.editedCard = null;
+                this.isEditing = false;
+            }
         },
         updateItem(card, itemIndex) {
             card.items[itemIndex].done = !card.items[itemIndex].done;
@@ -106,6 +117,37 @@ const app = new Vue({
         unlockFirstColumn() {
             const firstColumn = this.columns[0];
             firstColumn.locked = false;
+        },
+        editCard(card) {
+            this.editedCard = { ...card };
+            this.isEditing = true;
+        },
+        editCardItem(card, itemIndex) {
+            const itemText = prompt('Enter the new item text:');
+            if (itemText && itemText !== '') {
+                card.items[itemIndex].text = itemText;
+            }
+        },
+        addCardItem(card) {
+            if (card.items.length >= this.maxNumberOfItems) {
+                console.log('Maximum number of items (${this.maxNumberOfItems}) reached.');
+                return;
+            }
+
+            card.items.push({ text: 'New item', completed: false });
+        },
+        removeCardItem(card, itemIndex) {
+            if (card.items.length <= this.minNumberOfItems) {
+                console.log('Minimum number of items (${this.minNumberOfItems}) must be maintained.');
+                return;
+            }
+
+            card.items.splice(itemIndex, 1);
+        },
+        unlockFirstColumn(column) {
+            if (column.title === 'First' && column.locked) {
+                column.locked = false;
+            }
         }
     },
     created() {
