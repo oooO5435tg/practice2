@@ -89,6 +89,10 @@ const app = new Vue({
             }
         },
         addCard(column) {
+            if (column.locked || column.cards.length >= column.maxCards || (column.title === 'Second' || column.locked)) {
+                console.log("Card creation prevented.");
+                return;
+            }
             if (column.locked || column.cards.length >= column.maxCards) {
                 console.log("Card creation prevented.");
                 return;
