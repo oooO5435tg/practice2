@@ -13,7 +13,7 @@ const app = new Vue({
                     title: 'Second',
                     cards: [],
                     maxCards: 5,
-                    locked: false
+                    locked: true
                 },
                 {
                     title: 'Third',
@@ -33,8 +33,27 @@ const app = new Vue({
             const secondColumn = this.columns[1];
 
             if (secondColumn.cards.length === secondColumn.maxCards) {
-                this.columns[0].locked = true;
+                secondColumn.locked = true;
+                this.lockFirstColumn();
+            } else {
+                secondColumn.locked = false;
+                this.unlockFirstColumn();
             }
+        },
+        lockFirstColumn() {
+            const firstColumn = this.columns[0];
+
+            for (const card of firstColumn.cards) {
+                const halfOfItems = Math.ceil(card.items.length / 2);
+                if (card.completedItems >= halfOfItems) {
+                    firstColumn.locked = true;
+                    break;
+                }
+            }
+        },
+        unlockFirstColumn() {
+            const firstColumn = this.columns[0];
+            firstColumn.locked = false;
         },
         checkCardCompletion(card) {
             if (card.doneItems === card.items.length) {
@@ -43,8 +62,26 @@ const app = new Vue({
                 card.completedAt = new Date().toLocaleString();
             } else if (card.doneItems >= card.items.length / 2) {
                 const targetColumnIndex = this.columns.findIndex(column => column.title === 'Second');
-                this.moveCard(card, targetColumnIndex);
+                if (this.canMoveCard(card, targetColumnIndex)) {
+                    this.moveCard(card, targetColumnIndex);
+                }
             }
+        },
+        canMoveCard(card, targetColumnIndex) {
+            if (targetColumnIndex === 1) {
+                const secondColumn = this.columns[1];
+
+                if (secondColumn.cards.length === secondColumn.maxCards) {
+                    for (const colCard of this.columns[0].cards) {
+                        const halfOfItems = Math.ceil(colCard.items.length / 2);
+                        if (colCard.completedItems >= halfOfItems) {
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            return true;
         },
         clearAllCards() {
             for (const column of this.columns) {
@@ -58,10 +95,14 @@ const app = new Vue({
             }
 
             if (column.title === 'First' || column.title === 'Second') {
-                for (const col of this.columns) {
+                this.columns.forEach(col => {
                     if (col.title === 'First' || col.title === 'Second') {
                         col.locked = false;
                     }
+                });
+
+                if (this.columns[1].cards.length === this.columns[1].maxCards && this.columns[0].cards.some(card => card.doneItems >= card.items.length / 2)) {
+                    this.columns[0].locked = true;
                 }
             }
 
@@ -80,6 +121,8 @@ const app = new Vue({
             column.cards.push(newCard);
             this.editedCard = newCard;
             this.isEditing = true;
+
+            this.checkColumnStatus();
         },
         updateCardTitle(card) {
             if (card.title !== this.editedCard.title && this.editedCard) {
@@ -113,6 +156,21 @@ const app = new Vue({
         },
         moveCard(card, targetColumnIndex) {
             const sourceColumnIndex = this.columns.findIndex(column => column.cards.includes(card));
+
+            if (sourceColumnIndex === 0 && targetColumnIndex === 1) {
+                const firstColumn = this.columns[0];
+                const secondColumn = this.columns[1];
+
+                if (secondColumn.cards.length === secondColumn.maxCards) {
+                    for (const colCard of firstColumn.cards) {
+                        const halfOfItems = Math.ceil(colCard.items.length / 2);
+                        if (colCard.completedItems >= halfOfItems) {
+                            return; // Return early to prevent card movement
+                        }
+                    }
+                }
+            }
+
             this.columns[sourceColumnIndex].cards.splice(this.columns[sourceColumnIndex].cards.indexOf(card), 1);
             this.columns[targetColumnIndex].cards.push(card);
 
@@ -143,12 +201,7 @@ const app = new Vue({
         },
         editCardItem(card, itemIndex) {
             card.items[itemIndex].editable = !card.items[itemIndex].editable;
-            },
-        unlockFirstColumn(column) {
-            if (column.title === 'First' && column.locked) {
-                column.locked = false;
-            }
-        }
+        },
     },
     created() {
         const savedColumns = JSON.parse(localStorage.getItem('columns'));
