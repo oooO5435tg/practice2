@@ -69,9 +69,9 @@ const app = new Vue({
                 id: Date.now(),
                 title: 'New card',
                 items: [
-                    { text: 'Item 1', completed: false },
-                    { text: 'Item 2', completed: false },
-                    { text: 'Item 3', completed: false }
+                    { text: 'Item 1', completed: false, editable: false },
+                    { text: 'Item 2', completed: false, editable: false },
+                    { text: 'Item 3', completed: false, editable: false }
                 ],
                 completedItems: 0,
                 completedAt: null
@@ -122,28 +122,28 @@ const app = new Vue({
             this.editedCard = { ...card };
             this.isEditing = true;
         },
-        editCardItem(card, itemIndex) {
-            const itemText = prompt('Enter the new item text:');
-            if (itemText && itemText !== '') {
-                card.items[itemIndex].text = itemText;
-            }
-        },
         addCardItem(card) {
             if (card.items.length >= this.maxNumberOfItems) {
                 console.log('Maximum number of items (${this.maxNumberOfItems}) reached.');
                 return;
             }
-
-            card.items.push({ text: 'New item', completed: false });
+            card.items.push({ text: 'New item', done: false, editable: true });
+            this.updateItem(card, card.items.length - 1);
         },
         removeCardItem(card, itemIndex) {
             if (card.items.length <= this.minNumberOfItems) {
                 console.log('Minimum number of items (${this.minNumberOfItems}) must be maintained.');
                 return;
             }
-
             card.items.splice(itemIndex, 1);
         },
+        editCardItem(card, itemIndex) {
+            const newText = prompt('Enter the new item text:');
+            if (newText && newText !== '') {
+                card.items[itemIndex].text = newText;
+                this.updateItem(card, itemIndex);
+            }
+            },
         unlockFirstColumn(column) {
             if (column.title === 'First' && column.locked) {
                 column.locked = false;

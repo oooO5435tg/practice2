@@ -15,12 +15,13 @@
             <div class="card" v-for="(card, cardIndex) in column.cards" :key="cardIndex">
                 <h3 :contenteditable="card.editable || isEditing" @blur="card.editable = false" v-if="card === editedCard">{{ editedCard.title }}</h3>
                 <h3 :contenteditable="card.editable || isEditing" @blur="updateCardTitle(card)" v-else>{{ card.title }}</h3>
-                <div v-for="(item, itemIndex) in card.items" :key="itemIndex" class="card-item">
+                <div class="card-item" v-for="(item, itemIndex) in card.items" :key="itemIndex">
                     <input type="checkbox" :checked="item.completed" @change="updateItem(card, itemIndex)">
                     <span :class="{ completed: item.completed }">{{ item.text }}</span>
                     <button v-if="!item.editable" @click="editCardItem(card, itemIndex)">Edit</button>
                     <input v-else type="text" v-model="card.items[itemIndex].text" @keyup.enter="updateItem(card, itemIndex)">
                 </div>
+                <button v-if="card.items.length < maxNumberOfItems" @click="addCardItem(card)">Add Item</button>
 
                 <button v-if="!isEditing" @click="addCardItem(card)">Add Item</button>
                 <button v-else @click="removeCardItem(card, card.items.length - 1)">Remove Last Item</button>
