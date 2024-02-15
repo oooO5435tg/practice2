@@ -40,7 +40,7 @@
             </div>
         </div>
         <button v-if="column.locked || column.cards.length >= column.maxCards" :disabled="column.locked || column.cards.length >= column.maxCards">Add Card</button>
-        <button v-else @click="addCard(column)">Add Card</button>
+        <button v-else @click="addCard(column)" :disabled="column.locked">Add Card</button>
 
     </div>
 </div>
