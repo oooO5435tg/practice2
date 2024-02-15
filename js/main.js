@@ -37,7 +37,7 @@ const app = new Vue({
                 secondColumn.locked = true;
 
                 for (const card of secondColumn.cards) {
-                    if (card.doneItems === card.items.length) {
+                    if (card.completedItems === card.items.length) {
                         const targetColumnIndex = this.columns.findIndex(column => column.title === 'Third');
                         this.moveCard(card, targetColumnIndex);
                         card.completedAt = new Date().toLocaleString();
@@ -48,7 +48,7 @@ const app = new Vue({
             } else {
                 secondColumn.locked = false;
 
-                if (this.columns[0].cards.some(card => card.doneItems >= card.items.length / 2)) {
+                if (this.columns[0].cards.some(card => card.completedItems >= card.items.length / 2)) {
                     this.unlockFirstColumn();
                 }
             }
@@ -81,11 +81,11 @@ const app = new Vue({
             });
         },
         checkCardCompletion(card) {
-            if (card.doneItems === card.items.length) {
+            if (card.completedItems === card.items.length) {
                 const targetColumnIndex = this.columns.findIndex(column => column.title === 'Third');
                 this.moveCard(card, targetColumnIndex);
                 card.completedAt = new Date().toLocaleString();
-            } else if (card.doneItems >= card.items.length / 2) {
+            } else if (card.completedItems >= card.items.length / 2) {
                 const targetColumnIndex = this.columns.findIndex(column => column.title === 'Second');
                 if (this.columns[1].cards.length < this.columns[1].maxCards && !this.firstColumnLocked) {
                     this.moveCard(card, targetColumnIndex);
@@ -94,7 +94,7 @@ const app = new Vue({
 
             this.checkColumnStatus();
 
-            if (this.columns[1].cards.length === this.columns[1].maxCards && this.columns[0].cards.some(c => c.doneItems >= c.items.length / 2)) {
+            if (this.columns[1].cards.length === this.columns[1].maxCards && this.columns[0].cards.some(c => c.completedItems >= c.items.length / 2)) {
                 this.firstColumnLocked = true;
             }
         },
@@ -129,9 +129,9 @@ const app = new Vue({
                 id: Date.now(),
                 title: 'New card',
                 items: [
-                    { text: 'Item 1', completed: false, editable: false },
-                    { text: 'Item 2', completed: false, editable: false },
-                    { text: 'Item 3', completed: false, editable: false }
+                    { text: 'Item 1', completed: false, doneItems: 0, editable: false },
+                    { text: 'Item 2', completed: false, doneItems: 0, editable: false },
+                    { text: 'Item 3', completed: false, doneItems: 0, editable: false }
                 ],
                 completedItems: 0,
                 completedAt: null
@@ -150,28 +150,51 @@ const app = new Vue({
                 this.isEditing = false;
             }
         },
+        lockFirstColumnItems() {
+            if (this.firstColumnLocked) return;
+
+            const firstColumn = this.columns[0];
+            firstColumn.cards.forEach(card => {
+                card.items.forEach(item => {
+                    item.editable = false;
+                });
+            });
+            this.firstColumnLocked = true;
+        },
+
+        unlockFirstColumnItems() {
+            if (!this.firstColumnLocked) return;
+
+            const firstColumn = this.columns[0];
+            firstColumn.cards.forEach(card => {
+                card.items.forEach(item => {
+                    item.editable = true;
+                });
+            });
+            this.firstColumnLocked = false;
+        },
         updateItem(card, itemIndex) {
             card.items[itemIndex].done = !card.items[itemIndex].done;
-            const doneItems = card.items.filter(item => item.done);
-            this.$set(card, 'doneItems', doneItems.length);
+            const completedItems = card.items.filter(item => item.done);
+            this.$set(card, 'completedItems', completedItems.length);
 
-            if (this.firstColumnLocked && card.doneItems >= card.items.length / 2) {
+            if (this.firstColumnLocked && card.completedItems >= card.items.length / 2) {
                 return;
             }
 
             const firstColumn = this.columns[0];
             const secondColumn = this.columns[1];
 
-            if (firstColumn.locked && card.doneItems >= card.items.length / 2) {
+            if (firstColumn.locked && card.completedItems >= card.items.length / 2) {
                 this.unlockFirstColumn();
             }
 
-            if (firstColumn.cards.includes(card) && card.doneItems >= card.items.length / 2) {
+            if (firstColumn.cards.includes(card) && card.completedItems >= card.items.length / 2) {
                 const targetColumnIndex = this.columns.findIndex(column => column.title === 'Second');
                 if (this.columns[1].cards.length < this.columns[1].maxCards && !this.firstColumnLocked) {
                     this.moveCard(card, targetColumnIndex);
                 }
-            } else if (secondColumn.cards.includes(card) && card.doneItems === card.items.length) {
+            } else if (secondColumn.cards.includes(card) && card.completedItems === card.items.length) {
                 const targetColumnIndex = this.columns.findIndex(column => column.title === 'Third');
                 this.moveCard(card, targetColumnIndex);
                 card.completedAt = new Date().toLocaleString();
@@ -187,12 +210,14 @@ const app = new Vue({
                 const secondColumn = this.columns[1];
 
                 if (secondColumn.cards.length === secondColumn.maxCards) {
+                    let halfOfItemsReached = false;
                     for (const colCard of firstColumn.cards) {
                         const halfOfItems = Math.ceil(colCard.items.length / 2);
                         if (colCard.completedItems >= halfOfItems) {
-                            return; // Return early to prevent card movement
+                            halfOfItemsReached = true;
                         }
                     }
+
                 }
             }
 
