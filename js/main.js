@@ -42,10 +42,24 @@ const app = new Vue({
                 this.moveCard(card, targetColumnIndex);
             }
         },
+        clearAllCards() {
+            for (const column of this.columns) {
+                column.cards = [];
+            }
+        },
         addCard(column) {
-            if (column.locked || (column.cards && column.cards.length >= column.maxCards)) {
+            if (column.locked || column.cards.length >= column.maxCards) {
                 return;
             }
+
+            if (column.title === 'First' || column.title === 'Second') {
+                for (const col of this.columns) {
+                    if (col.title === 'First' || col.title === 'Second') {
+                        col.locked = false;
+                    }
+                }
+            }
+
 
             const newCard = {
                 id: Date.now(),
@@ -55,16 +69,11 @@ const app = new Vue({
                     { text: 'Item 2', completed: false },
                     { text: 'Item 3', completed: false }
                 ],
-                doneItems: 0,
+                completedItems: 0,
                 completedAt: null
             };
 
-            if (column.cards) {
-                column.cards.push(newCard);
-            } else {
-                column.cards = [newCard];
-            }
-
+            column.cards.push(newCard);
             this.checkColumnStatus();
             this.checkCardCompletion(newCard);
         },

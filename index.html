@@ -8,6 +8,7 @@
 </head>
 <body>
 <div id="app">
+    <button @click="clearAllCards">Clear All</button>
     <div class="column" v-for="(column, index) in columns" :key="index">
         <h2>{{ column.title }}</h2>
         <div class="card-container">
@@ -20,10 +21,8 @@
                     </li>
                 </ul>
                 <div class="card-footer" v-if="column.title === 'First' && card.doneItems >= card.items.length / 2">
-                    <button @click="moveCard(card, 1)">Move to Second Column</button>
                 </div>
                 <div class="card-footer" v-else-if="column.title === 'Second' && card.doneItems === card.items.length">
-                    <button @click="moveCard(card, 2)">Move to Third Column</button>
                 </div>
                 <div class="card-footer" v-else-if="column.title === 'Third' && card.completedAt">
                     <p>Completed: {{ card.completedAt }}</p>
