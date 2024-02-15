@@ -16,8 +16,8 @@
                 <h3 :contenteditable="card.editable || isEditing" @blur="card.editable = false" v-if="card === editedCard">{{ editedCard.title }}</h3>
                 <h3 :contenteditable="card.editable || isEditing" @blur="updateCardTitle(card)" v-else>{{ card.title }}</h3>
                 <div class="card-item" v-for="(item, itemIndex) in card.items" :key="itemIndex">
-                    <input type="checkbox" :checked="item.completed" @change="updateItem(card, itemIndex)">
-                    <span :class="{ completed: item.completed }">{{ item.text }}</span>
+                    <input type="checkbox" :checked="item.done" @change="updateItem(card, itemIndex)">
+                    <span :class="{ completed: item.done }">{{ item.text }}</span>
                     <button v-if="!item.editable" @click="editCardItem(card, itemIndex)">Edit</button>
                     <input v-else type="text" v-model="card.items[itemIndex].text" @keyup.enter="updateItem(card, itemIndex)">
                 </div>
