@@ -47,15 +47,20 @@ const app = new Vue({
                 this.lockFirstColumn();
             } else {
                 secondColumn.locked = false;
-                this.unlockFirstColumn();
+
+                if (this.columns[0].cards.some(card => card.doneItems >= card.items.length / 2)) {
+                    this.unlockFirstColumn();
+                }
             }
+
+            this.checkSecondColumnStatus();
         },
         checkSecondColumnStatus() {
             const secondColumn = this.columns[1];
 
             if (secondColumn.cards.length === secondColumn.maxCards) {
                 for (const card of secondColumn.cards) {
-                    if (card.doneItems === card.items.length) {
+                    if (card.doneItems === card.items.length && this.canMoveCard(card, 2)) {
                         const targetColumnIndex = this.columns.findIndex(column => column.title === 'Third');
                         this.moveCard(card, targetColumnIndex);
                         card.completedAt = new Date().toLocaleString();
