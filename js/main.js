@@ -93,26 +93,6 @@ const app = new Vue({
                 this.firstColumnLocked = true;
             }
         },
-        canMoveCard(card, targetColumnIndex) {
-            if (targetColumnIndex === 2) {
-                return true;
-            }
-
-            if (targetColumnIndex === 1) {
-                const secondColumn = this.columns[1];
-
-                if (secondColumn.cards.length === secondColumn.maxCards) {
-                    for (const colCard of this.columns[0].cards) {
-                        const halfOfItems = Math.ceil(colCard.items.length / 2);
-                        if (colCard.completedItems >= halfOfItems) {
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            return true;
-        },
         clearAllCards() {
             for (const column of this.columns) {
                 column.cards = [];
@@ -167,7 +147,8 @@ const app = new Vue({
         },
         updateItem(card, itemIndex) {
             card.items[itemIndex].done = !card.items[itemIndex].done;
-            card.doneItems = card.items.filter(item => item.done).length;
+            const doneItems = card.items.filter(item => item.done);
+            this.$set(card, 'doneItems', doneItems.length);
 
             if (this.firstColumnLocked && card.doneItems >= card.items.length / 2) {
                 return;
