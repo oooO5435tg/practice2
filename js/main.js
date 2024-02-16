@@ -32,44 +32,56 @@ const app = new Vue({
     methods: {
         checkColumnStatus() {
             const secondColumn = this.columns[1];
-
+          
             if (secondColumn.cards.length === secondColumn.maxCards) {
-                secondColumn.locked = true;
-
-                for (const card of secondColumn.cards) {
-                    if (card.completedItems === card.items.length) {
-                        const targetColumnIndex = this.columns.findIndex(column => column.title === 'Third');
-                        this.moveCard(card, targetColumnIndex);
-                        card.completedAt = new Date().toLocaleString();
-                    }
+              secondColumn.locked = true;
+          
+              for (const card of secondColumn.cards) {
+                if (card.completedItems === card.items.length) {
+                  const targetColumnIndex = this.columns.findIndex(column => column.title === 'Third');
+                  this.moveCard(card, targetColumnIndex);
+                  card.completedAt = new Date().toLocaleString();
                 }
-
-                if (secondColumn.cards.length < this.maxNumberOfItems) {
-                    this.unlockFirstColumn();
-                    secondColumn.locked = false;
-                }
-            } else {
+              }
+          
+              if (secondColumn.cards.length < this.maxNumberOfItems) {
+                this.unlockFirstColumn();
                 secondColumn.locked = false;
-
-                if (this.columns[0].cards.some(card => card.completedItems >= card.items.length / 2)) {
-                    this.unlockFirstColumn();
+              }
+            } else {
+              secondColumn.locked = false;
+          
+              if (this.columns[0].cards.some(card => card.completedItems >= card.items.length / 2)) {
+                this.unlockFirstColumn();
+              }
+          
+              // Check if there is an available spot in the second column
+              if (secondColumn.cards.length < secondColumn.maxCards) {
+                // Check if there are cards in the first column with completed items more than 50%
+                const halfCompletedCards = this.columns[0].cards.filter(card => card.completedItems >= card.items.length / 2);
+          
+                if (halfCompletedCards.length > 0) {
+                  halfCompletedCards.forEach(card => {
+                    const targetColumnIndex = this.columns.findIndex(column => column.title === 'Second');
+                    this.moveCard(card, targetColumnIndex);
+                  });
                 }
+              }
             }
-
+          
             this.checkSecondColumnStatus();
             const thirdColumn = this.columns[2];
             const movedCard = secondColumn.cards.find(card => card.completedItems === card.items.length && thirdColumn.cards.includes(card));
             if (movedCard) {
-                console.log('Card has been moved from "Second" to "Third":', movedCard.title);
+              console.log('Card has been moved from "Second" to "Third":', movedCard.title);
             }
         },
-
         checkSecondColumnStatus() {
             const secondColumn = this.columns[1];
 
             if (secondColumn.cards.length > 0) {
                 const halfCompletedCards = secondColumn.cards.filter(card => card.completedItems === card.items.length / 2);
-                const shouldMoveToFirstColumn = halfCompletedCards.length > 0 && this.columns[0].cards.some(card => !card.locked);
+                const shouldMoveToFirstColumn = halfCompletedCards.length > 0 && !this.columns[0].locked;
 
                 if (shouldMoveToFirstColumn) {
                     halfCompletedCards.forEach(card => {
